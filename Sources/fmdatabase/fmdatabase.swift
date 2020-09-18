@@ -7,9 +7,10 @@ public protocol SqliteValue {
 
 public class FMDatabase {
 
-    let traceExecution: Bool = false
+    var traceExecution: Bool = false
+    var isExecutingStatement = false
     let checkedOut: Bool = false
-    let busyRetryTimeout: Int = 0
+    var busyRetryTimeout: Int = 0
     let crashOnErrors: Bool = false
     let logsErrors: Bool = false
     let cachedStatements: [Int: Int] = [:]
@@ -59,6 +60,11 @@ public class FMDatabase {
         var pStmt: OpaquePointer? = nil
         var rc: Int32 = 0
         var retry = false
+        var numberOfRetries = 0
+
+        if self.traceExecution {
+            print("executeQuery: \(sql)")
+        }
 
         if pStmt != nil {
             repeat {
@@ -67,6 +73,13 @@ public class FMDatabase {
                 if (SQLITE_BUSY == rc || SQLITE_LOCKED == rc) {
                     retry = true
                     usleep(20)
+                    numberOfRetries = numberOfRetries + 1
+                    if self.busyRetryTimeout > 0 && numberOfRetries > self.busyRetryTimeout {
+                        print("\(#function):\(#line) Database busy (\(self.path))")
+                        sqlite3_finalize(pStmt)
+                        self.isExecutingStatement = false
+                    //return nil;
+                    }
                 } else if (SQLITE_OK != rc) {
                     sqlite3_finalize(pStmt)
                 }
