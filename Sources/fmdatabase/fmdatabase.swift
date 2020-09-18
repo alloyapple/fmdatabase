@@ -24,8 +24,21 @@ public class FMDatabase {
         return err == SQLITE_OK
     }
 
+    public func open(flags: Int32) -> Bool {
+         let err = sqlite3_open_v2(self.path, &_db, flags, nil /* Name of VFS module to use */)
+         return err == SQLITE_OK
+    }
+
     public static func databaseWith(path: String) -> FMDatabase {
         return FMDatabase(path: path)
+    }
+
+    public static func sqliteLibVersion() -> String {
+        return String(cString: sqlite3_libversion())
+    }
+
+    public static func isSQLiteThreadSafe() -> Bool {
+        return sqlite3_threadsafe() != 0
     }
 
     public func bindObject(obj: SqliteValue?, idx: Int32, pStmt: OpaquePointer) {
