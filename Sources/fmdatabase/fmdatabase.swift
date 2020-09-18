@@ -1,4 +1,5 @@
 import CSqlite3
+import Glibc
 
 public protocol SqliteValue {
     func bind(idx: Int32, pStmt: OpaquePointer)
@@ -14,6 +15,7 @@ public class FMDatabase {
     let cachedStatements: [Int: Int] = [:]
     let path: String
     var _db: OpaquePointer? = nil
+    var _openResultSets: [FMResultSet] = []
 
     public init(path: String = ":memory:") {
         self.path = path
@@ -49,6 +51,48 @@ public class FMDatabase {
 
         obj.bind(idx: idx, pStmt: pStmt)
 
+    }
+
+    //- (FMResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args {
+
+    public func executeQuery(sql: String, arrayArgs: [SqliteValue?] = [], dictionaryArgs: [String: SqliteValue?] = [:]) {
+        var pStmt: OpaquePointer? = nil
+        var rc: Int32 = 0
+        var retry = false
+
+        if pStmt != nil {
+            repeat {
+                retry = false
+                rc = sqlite3_prepare_v2(_db, sql, -1, &pStmt, nil)
+                if (SQLITE_BUSY == rc || SQLITE_LOCKED == rc) {
+                    retry = true
+                    usleep(20)
+                } else if (SQLITE_OK != rc) {
+                    sqlite3_finalize(pStmt)
+                }
+            } while retry;
+        }
+
+        let queryCount = sqlite3_bind_parameter_count(pStmt)
+        var idx: Int32 = 0
+
+        if dictionaryArgs.count > 0 {
+            for (k, v) in dictionaryArgs {
+                let namedIdx = sqlite3_bind_parameter_index(pStmt, k)
+                if namedIdx > 0 {
+                    bindObject(obj: v, idx: namedIdx, pStmt: pStmt!)
+                    idx = idx + 1
+                } else {
+                    print("Could not find index for \(k)")
+                }
+            }
+        } else {
+            while idx < queryCount {
+                let obj = arrayArgs[Int(idx)]
+                idx = idx + 1
+                bindObject(obj: obj, idx: idx, pStmt: pStmt!)
+            }
+        }
     }
 }
 
