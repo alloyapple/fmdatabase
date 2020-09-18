@@ -41,6 +41,9 @@ public class FMDatabase {
 
 
 public class FMStatement{
+    public var statement: OpaquePointer?
+    public var query: String = ""
+    public var useCount: Int32 = 0
 
 }
 
