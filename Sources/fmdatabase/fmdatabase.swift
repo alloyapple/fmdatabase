@@ -1,7 +1,7 @@
 import CSqlite3
 
 public protocol SqliteValue {
-    func bind()
+    func bind(idx: Int32, pStmt: OpaquePointer)
 }
 
 public class FMDatabase {
@@ -21,13 +21,13 @@ public class FMDatabase {
         return FMDatabase(path: path)
     }
 
-    public func bindObject(obj: SqliteValue?, idx: Int, pStmt: UnsafePointer<sqlite3_stmt>) {
+    public func bindObject(obj: SqliteValue?, idx: Int32, pStmt: OpaquePointer) {
         guard let obj = obj else {
-            sqlite3_bind_null(pStmt, idx);
+            sqlite3_bind_null(pStmt, idx)
             return 
         }
 
-        obj.bind()
+        obj.bind(idx: idx, pStmt: pStmt)
 
     }
 }
