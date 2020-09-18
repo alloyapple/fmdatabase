@@ -12,9 +12,16 @@ public class FMDatabase {
     let crashOnErrors: Bool = false
     let logsErrors: Bool = false
     let cachedStatements: [Int: Int] = [:]
+    let path: String
+    var _db: OpaquePointer? = nil
 
-    public init(path: String) {
+    public init(path: String = ":memory:") {
+        self.path = path
+    }
 
+    public func open() -> Bool {
+        let err = sqlite3_open(self.path, &_db)
+        return err == SQLITE_OK
     }
 
     public static func databaseWith(path: String) -> FMDatabase {

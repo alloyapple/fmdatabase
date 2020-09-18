@@ -12,6 +12,12 @@ extension Data {
     }
 }
 
+extension Date: SqliteValue { 
+    public func bind(idx: Int32, pStmt: OpaquePointer) {
+        sqlite3_bind_double(pStmt, idx, self.timeIntervalSince1970)
+    }
+}
+
 extension Data: SqliteValue {
     public func bind(idx: Int32, pStmt: OpaquePointer) {
         let bytes = self.bytes
