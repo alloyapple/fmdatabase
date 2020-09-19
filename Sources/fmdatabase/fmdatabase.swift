@@ -56,7 +56,7 @@ public class FMDatabase {
 
     //- (FMResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args {
 
-    public func executeQuery(sql: String, arrayArgs: [SqliteValue?] = [], dictionaryArgs: [String: SqliteValue?] = [:]) {
+    public func executeQuery(sql: String, arrayArgs: [SqliteValue?] = [], dictionaryArgs: [String: SqliteValue?] = [:]) -> FMResultSet? {
         var pStmt: OpaquePointer? = nil
         var rc: Int32 = 0
         var retry = false
@@ -78,7 +78,7 @@ public class FMDatabase {
                         print("\(#function):\(#line) Database busy (\(self.path))")
                         sqlite3_finalize(pStmt)
                         self.isExecutingStatement = false
-                    //return nil;
+                        return nil
                     }
                 } else if (SQLITE_OK != rc) {
                     sqlite3_finalize(pStmt)
