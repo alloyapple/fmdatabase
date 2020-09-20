@@ -1,3 +1,3 @@
-class FMResultSet {
+public class FMResultSet {
     
 }

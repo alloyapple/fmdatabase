@@ -106,6 +106,7 @@ public class FMDatabase {
                 bindObject(obj: obj, idx: idx, pStmt: pStmt!)
             }
         }
+        return nil
     }
 }
 
