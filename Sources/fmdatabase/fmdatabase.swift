@@ -13,10 +13,11 @@ public class FMDatabase {
     var busyRetryTimeout: Int = 0
     let crashOnErrors: Bool = false
     let logsErrors: Bool = false
-    let cachedStatements: [Int: Int] = [:]
+    let cachedStatements: [String: FMStatement] = [:]
     let path: String
     var _db: OpaquePointer? = nil
     var _openResultSets: [FMResultSet] = []
+    var shouldCacheStatements: Bool = false
 
     public init(path: String = ":memory:") {
         self.path = path
@@ -61,9 +62,20 @@ public class FMDatabase {
         var rc: Int32 = 0
         var retry = false
         var numberOfRetries = 0
+        var statement :FMStatement? = nil
+
+        if self.isExecutingStatement {
+            return nil  
+        }
 
         if self.traceExecution {
             print("executeQuery: \(sql)")
+        }
+
+        if self.shouldCacheStatements {
+            statement = self.cachedStatements[sql]
+            pStmt = statement.statement
+            statement?.reset()
         }
 
         if pStmt != nil {
@@ -115,6 +127,20 @@ public class FMStatement{
     public var statement: OpaquePointer?
     public var query: String = ""
     public var useCount: Int32 = 0
+
+    public func reset() {
+        guard let statement = statement {
+            return
+        }
+        sqlite3_reset(statement)
+    }
+
+    deinit() {
+        guard let statement = statement {
+            return
+        }
+        sqlite3_finalize(statement)
+    }
 
 }
 
