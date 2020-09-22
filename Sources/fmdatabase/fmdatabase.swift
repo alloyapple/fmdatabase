@@ -135,7 +135,7 @@ public class FMStatement{
         sqlite3_reset(statement)
     }
 
-    deinit() {
+    deinit {
         guard let statement = statement {
             return
         }
