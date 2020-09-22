@@ -13,7 +13,7 @@ public class FMDatabase {
     var busyRetryTimeout: Int = 0
     let crashOnErrors: Bool = false
     let logsErrors: Bool = false
-    let cachedStatements: [String: FMStatement] = [:]
+    var cachedStatements: [String: FMStatement] = [:]
     let path: String
     var _db: OpaquePointer? = nil
     var _openResultSets: [FMResultSet] = []
@@ -74,7 +74,7 @@ public class FMDatabase {
 
         if self.shouldCacheStatements {
             statement = self.cachedStatements[sql]
-            pStmt = statement.statement
+            pStmt = statement?.statement
             statement?.reset()
         }
 
@@ -129,14 +129,14 @@ public class FMStatement{
     public var useCount: Int32 = 0
 
     public func reset() {
-        guard let statement = statement {
+        guard let statement = statement else {
             return
         }
         sqlite3_reset(statement)
     }
 
     deinit {
-        guard let statement = statement {
+        guard let statement = statement else {
             return
         }
         sqlite3_finalize(statement)
