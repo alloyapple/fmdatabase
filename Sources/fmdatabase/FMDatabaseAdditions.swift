@@ -6,6 +6,10 @@ extension FMDatabase {
     
 }
 
+public protocol SqliteValue {
+    func bind(idx: Int32, pStmt: OpaquePointer)
+}
+
 extension Data {
     var bytes : [UInt8]{
         return [UInt8](self)

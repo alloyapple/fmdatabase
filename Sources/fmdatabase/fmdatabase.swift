@@ -1,9 +1,6 @@
 import CSqlite3
 import Glibc
 
-public protocol SqliteValue {
-    func bind(idx: Int32, pStmt: OpaquePointer)
-}
 
 public class FMDatabase {
 
