@@ -13,7 +13,7 @@ public class FMDatabase {
     var cachedStatements: [String: FMStatement] = [:]
     let path: String
     var _db: OpaquePointer? = nil
-    var _openResultSets: [FMResultSet] = []
+    var openResultSets: [FMResultSet] = []
     var shouldCacheStatements: Bool = false
 
     var lastErrorCode: Int32 {
@@ -139,7 +139,31 @@ public class FMDatabase {
                 bindObject(obj: obj, idx: idx, pStmt: pStmt!)
             }
         }
-        return nil
+
+        if idx != queryCount {
+            print("Error: the bind count is not correct for the # of variables (executeQuery)");
+            sqlite3_finalize(pStmt)
+            self.isExecutingStatement = false
+            return nil
+        }
+
+        if statement == nil {
+            statement = FMStatement()   
+            statement?.statement = pStmt
+
+            if self.shouldCacheStatements {
+                self.setCachedStatement(statement: statement!, query: sql)
+            }
+        }
+
+        let rs = FMResultSet.resultSetWith(statement: statement!, aDB: self)
+        rs.query = sql
+        self.openResultSets.append(rs)
+        statement!.useCount = statement!.useCount + 1
+
+        self.isExecutingStatement = false   
+
+        return rs
     }
 }
 
