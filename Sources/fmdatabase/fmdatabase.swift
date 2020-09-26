@@ -16,6 +16,18 @@ public class FMDatabase {
     var _openResultSets: [FMResultSet] = []
     var shouldCacheStatements: Bool = false
 
+    var lastErrorCode: Int32 {
+        get {
+            return sqlite3_errcode(self._db)
+        }
+    }
+
+    var lastErrorMessage: String {
+        get {
+            return String(cString: sqlite3_errmsg(self._db))
+        }
+    }
+
     public init(path: String = ":memory:") {
         self.path = path
     }
@@ -95,7 +107,14 @@ public class FMDatabase {
                         return nil
                     }
                 } else if (SQLITE_OK != rc) {
+                    if self.logsErrors {
+                        print("DB Error: \(self.lastErrorCode) \(self.lastErrorMessage)")
+                        print("DB Query: \(sql)")
+                        print("DB Path: \(self.path)")
+                    }
                     sqlite3_finalize(pStmt)
+                    self.isExecutingStatement = false
+                    return nil
                 }
             } while retry;
         }
