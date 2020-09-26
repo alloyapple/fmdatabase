@@ -307,7 +307,33 @@ public class FMDatabase {
             }
         } while retry
 
-        return false
+        var cachedStmt: FMStatement? = nil
+        var closeErrorCode: Int32 = 0
+
+        if self.shouldCacheStatements && cachedStmt == nil {
+            cachedStmt = FMStatement()
+            cachedStmt?.statement = pStmt
+            self.setCachedStatement(statement: cachedStmt!, query: sql)
+        }
+
+        
+
+        if cachedStmt == nil {
+            closeErrorCode = sqlite3_finalize(pStmt)
+        } else {
+            cachedStmt!.useCount += cachedStmt!.useCount + 1
+            closeErrorCode = sqlite3_reset(pStmt);
+        }
+
+        if (closeErrorCode != SQLITE_OK) {
+            print("Unknown error finalizing or resetting statement (\(closeErrorCode): \(self.lastErrorMessage))")
+            print("DB Query: \(sql)");
+        }
+    
+        self.isExecutingStatement = false
+
+
+        return (rc == SQLITE_DONE || rc == SQLITE_OK)
     }
 }
 
