@@ -15,6 +15,16 @@ public class FMDatabase {
     var _db: OpaquePointer? = nil
     var openResultSets: [FMResultSet] = []
     var shouldCacheStatements: Bool = false
+    var databaseExists: Bool {
+        get {
+            if self._db == nil {
+                print("The FMDatabase \(self.path) is not open.")
+                return false
+            }
+
+            return true
+        }
+    }
 
     var lastErrorCode: Int32 {
         get {
@@ -52,6 +62,10 @@ public class FMDatabase {
 
     public static func isSQLiteThreadSafe() -> Bool {
         return sqlite3_threadsafe() != 0
+    }
+
+    public func warnInUse() {
+        print("The FMDatabase \(self.path) is currently in use.")
     }
 
     public func setCachedStatement(statement: FMStatement, query: String) {
@@ -164,6 +178,93 @@ public class FMDatabase {
         self.isExecutingStatement = false   
 
         return rs
+    }
+
+    public func executeQuery(sql: String, _ list: SqliteValue...) -> FMResultSet? {
+        return self.executeQuery(sql: sql, arrayArgs: list)
+    }
+
+    public func executeUpdate(sql: String, arrayArgs: [SqliteValue?] = [], dictionaryArgs: [String: SqliteValue?] = [:]) -> Bool {
+        if self.databaseExists == false {
+            return false
+        }
+
+        if self.isExecutingStatement {
+            self.warnInUse()
+            return false
+        }
+
+        self.isExecutingStatement = true
+
+        if self.traceExecution {
+            print("executeQuery: \(sql)")
+        }
+
+        var statement :FMStatement? = nil
+        var pStmt: OpaquePointer? = nil
+        var numberOfRetries = 0
+        var retry  = false
+        var rc: Int32 = 0
+
+        if self.shouldCacheStatements {
+            statement = self.cachedStatements[sql]
+            pStmt = statement?.statement
+            statement?.reset()
+        }
+
+        if pStmt != nil {
+            repeat {
+                retry = false
+                rc = sqlite3_prepare_v2(_db, sql, -1, &pStmt, nil)
+                if SQLITE_BUSY == rc || SQLITE_LOCKED == rc {
+                    retry = true
+                    usleep(20);
+                    numberOfRetries += 1
+                    if self.busyRetryTimeout > 0 && numberOfRetries > self.busyRetryTimeout {
+                        print("\(#function):\(#line) Database busy (\(self.path))")
+                        print("Database busy")
+                        sqlite3_finalize(pStmt)
+                        self.isExecutingStatement = false
+                        return false
+                    }
+                } else if SQLITE_OK != rc {
+
+                    if self.logsErrors {
+                        print("DB Error: \(self.lastErrorCode) \(self.lastErrorMessage)")
+                        print("DB Query: \(sql)")
+                        print("DB Path: \(self.path)")
+                    }
+                    sqlite3_finalize(pStmt)
+                    self.isExecutingStatement = false
+                    return false
+
+                }
+            } while retry
+        }
+
+        var idx: Int32 = 0;
+        let queryCount = sqlite3_bind_parameter_count(pStmt)
+
+        if dictionaryArgs.count > 0 {
+
+            for (k, v) in dictionaryArgs {
+                let namedIdx = sqlite3_bind_parameter_index(pStmt, k)
+                if namedIdx > 0 {
+                    self.bindObject(obj: v, idx: namedIdx, pStmt: pStmt!)
+                    idx = idx + 1
+                } else {
+                    print("Could not find index for \(k)")
+                }
+            }
+        } else {
+            while idx < queryCount {
+                let obj = arrayArgs[Int(idx)]
+                idx = idx + 1
+                bindObject(obj: obj, idx: idx, pStmt: pStmt!)
+            }
+        }
+
+        return false
     }
 }
 
