@@ -42,6 +42,11 @@ public class FMDatabase {
         return sqlite3_threadsafe() != 0
     }
 
+    public func setCachedStatement(statement: FMStatement, query: String) {
+        statement.query = query
+        self.cachedStatements[query] = statement
+    }
+
     public func bindObject(obj: SqliteValue?, idx: Int32, pStmt: OpaquePointer) {
         guard let obj = obj else {
             sqlite3_bind_null(pStmt, idx)
