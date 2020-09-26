@@ -264,6 +264,49 @@ public class FMDatabase {
             }
         }
 
+        if idx != queryCount {
+            print("Error: the bind count is not correct for the # of variables (executeQuery)");
+            sqlite3_finalize(pStmt)
+            self.isExecutingStatement = false
+            return false
+        }
+
+        numberOfRetries = 0
+
+        repeat {
+            rc = sqlite3_step(pStmt)
+            retry = false
+            if (SQLITE_BUSY == rc || SQLITE_LOCKED == rc) {
+                retry = true
+                if (SQLITE_LOCKED == rc) {
+                    rc = sqlite3_reset(pStmt);
+                    if (rc != SQLITE_LOCKED) {
+                        print("Unexpected result from sqlite3_reset (\(rc)) eu");
+                    }
+                }
+
+                usleep(20)
+                numberOfRetries = numberOfRetries + 1
+                if self.busyRetryTimeout > 0 && numberOfRetries > self.busyRetryTimeout {
+                    print("\(#function):\(#line) Database busy (\(self.path ))");
+                    print("Database busy")
+                    retry = false
+                }
+
+            } else if SQLITE_DONE == rc {
+
+            } else if SQLITE_ERROR == rc {
+                print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) SQLITE_ERROR")
+                print("DB Query: \(sql)")
+            } else if SQLITE_MISUSE == rc {
+                print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) SQLITE_MISUSE")
+                print("DB Query: \(sql)")
+            } else {
+                print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) eu")
+                print("DB Query: \(sql)")
+            }
+        } while retry
+
         return false
     }
 }
