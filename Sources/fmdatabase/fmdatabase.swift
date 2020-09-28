@@ -15,6 +15,7 @@ public class FMDatabase {
     var _db: OpaquePointer? = nil
     var openResultSets: [FMResultSet] = []
     var shouldCacheStatements: Bool = false
+    var inTransaction: Bool = false
     var databaseExists: Bool {
         get {
             if self._db == nil {
@@ -336,8 +337,48 @@ public class FMDatabase {
         return (rc == SQLITE_DONE || rc == SQLITE_OK)
     }
 
-    public func executeUpdate(sql: String, _ list: SqliteValue...) -> Bool {
+    public func executeUpdate(_ sql: String, _ list: SqliteValue...) -> Bool {
         return self.executeUpdate(sql: sql, arrayArgs: list)
+    }
+
+    public func rollback() -> Bool {
+        let b = self.executeUpdate(sql: "rollback transaction")
+
+        if b {
+            self.inTransaction = false
+        }
+
+        return b
+    }
+
+    public func commit() -> Bool {
+        let b = self.executeUpdate(sql: "commit transaction")
+
+        if b {
+            self.inTransaction = false
+        }
+
+        return b
+    }
+
+    public func beginDeferredTransaction() -> Bool {
+        let b = self.executeUpdate(sql: "begin deferred transaction")
+
+        if b {
+            self.inTransaction = true
+        }
+
+        return b
+    }
+
+    public func beginTransaction() -> Bool {
+        let b = self.executeUpdate(sql: "begin exclusive transaction")
+
+        if b {
+            self.inTransaction = true
+        }
+
+        return b
     }
 }
 
