@@ -335,6 +335,10 @@ public class FMDatabase {
 
         return (rc == SQLITE_DONE || rc == SQLITE_OK)
     }
+
+    public func executeUpdate(sql: String, _ list: SqliteValue...) -> Bool {
+        return self.executeUpdate(sql: sql, arrayArgs: list)
+    }
 }
 
 
