@@ -13,8 +13,26 @@ public class FMResultSet {
     }
 
     var resultDict: [String: SqliteValue] {
-        let num_cols = sqlite3_data_count(statement.statement)
-        return [:]
+        var result = [String: SqliteValue]()
+        
+        for (k, v) in self.columnNames {
+            result[k] = self.valueForColumnIndex(v)
+        }
+        return result
+    }
+
+    lazy var columnNames: [String: Int32] = self.getColumnNames()
+
+    func getColumnNames() -> [String: Int32] {
+        var result = [String: Int32]()
+        let columnCount = sqlite3_column_count(statement.statement)
+
+        for i in 0..<columnCount {
+            let key = String(cString: sqlite3_column_name(statement.statement, i))
+            result[key.lowercased()] = i
+        }
+
+        return result
     }
 
     public  init(db: FMDatabase, statement: FMStatement) {
@@ -38,7 +56,7 @@ public class FMResultSet {
 
     public func dataForColumnIndex(_ columnIdx: Int32) -> Data? {
         if (sqlite3_column_type(statement.statement, columnIdx) == SQLITE_NULL || (columnIdx < 0)) {
-            return nil;
+            return nil
         }
 
         let dataSize = sqlite3_column_bytes(statement.statement, columnIdx)
