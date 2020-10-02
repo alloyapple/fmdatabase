@@ -2,7 +2,7 @@ import Foundation
 import CSqlite3
 
 public class FMResultSet {
-    let parentDB: FMDatabase
+    weak var parentDB: FMDatabase?
     let statement: FMStatement
     public var query: String = ""
     let columnNamesSetup: Bool = false
