@@ -11,9 +11,7 @@ final class fmdatabaseTests: XCTestCase {
         XCTAssertTrue(db.open())
         let expected_sqls = [
                 """
-                CREATE TABLE t1(id integer primary key, s1 text, 
-                t1_i1 integer not null, i2 integer, unique (s1), 
-                constraint t1_idx1 unique (i2));
+                CREATE TABLE t1(id integer primary key, s1 text, t1_i1 integer not null, i2 integer, unique (s1), constraint t1_idx1 unique (i2));
                 """
                 ,
                 "INSERT INTO \"t1\" VALUES(1,'foo',10,20);"
@@ -40,6 +38,7 @@ final class fmdatabaseTests: XCTestCase {
                 ]
             
             for sql in expected_sqls {
+                print("sql: \(sql)")
                 let test = db.executeUpdate(sql: sql)
                 XCTAssertTrue(test)
             }

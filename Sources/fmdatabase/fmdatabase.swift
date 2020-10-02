@@ -213,7 +213,7 @@ public class FMDatabase {
             statement?.reset()
         }
 
-        if pStmt != nil {
+        if pStmt == nil {
             repeat {
                 retry = false
                 rc = sqlite3_prepare_v2(_db, sql, -1, &pStmt, nil)
