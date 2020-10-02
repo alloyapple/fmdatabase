@@ -46,6 +46,8 @@ final class fmdatabaseTests: XCTestCase {
                 let data = r.resultDict
                 print("data \(data)")
 
+            } else {
+                XCTAssertTrue(false)
             }
     }
 
