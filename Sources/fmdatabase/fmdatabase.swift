@@ -181,10 +181,6 @@ public class FMDatabase {
         return rs
     }
 
-    public func executeQuery(sql: String, _ list: SqliteValue...) -> FMResultSet? {
-        return self.executeQuery(sql: sql, arrayArgs: list)
-    }
-
     public func executeUpdate(sql: String, arrayArgs: [SqliteValue?] = [], dictionaryArgs: [String: SqliteValue?] = [:]) -> Bool {
         if self.databaseExists == false {
             return false

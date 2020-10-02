@@ -38,9 +38,14 @@ final class fmdatabaseTests: XCTestCase {
                 ]
             
             for sql in expected_sqls {
-                print("sql: \(sql)")
                 let test = db.executeUpdate(sql: sql)
                 XCTAssertTrue(test)
+            }
+
+            if let r = db.executeQuery(sql: "select 4+5 as foo") {
+                let data = r.resultDict
+                print("data \(data)")
+
             }
     }
 
