@@ -46,7 +46,8 @@ final class fmdatabaseTests: XCTestCase {
     func testselect() {
         let db = FMDatabase()
         XCTAssertTrue(db.open())
-        XCTAssertTrue(db.goodConnection)
+        // XCTAssertTrue(db.goodConnection)
+        db.traceExecution = true
         if let r = db.executeQuery(sql: "select 4+5 as foo") {
             let data = r.resultDict
             print("data \(data)")

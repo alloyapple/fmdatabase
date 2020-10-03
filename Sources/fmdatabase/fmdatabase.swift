@@ -107,16 +107,23 @@ public class FMDatabase {
         var numberOfRetries = 0
         var statement :FMStatement? = nil
 
+        if self.databaseExists == false {
+            return nil
+        }
+
         if self.isExecutingStatement {
+            //[self warnInUse];
             return nil  
         }
+
+        self.isExecutingStatement = true    
 
         if self.traceExecution {
             print("executeQuery: \(sql)")
         }
 
         if self.shouldCacheStatements {
-            statement = self.cachedStatements[sql]
+            statement            = self.cachedStatements[sql]
             pStmt = statement?.statement
             statement?.reset()
         }
