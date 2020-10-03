@@ -49,6 +49,9 @@ final class fmdatabaseTests: XCTestCase {
         // XCTAssertTrue(db.goodConnection)
         db.traceExecution = true
         if let r = db.executeQuery(sql: "select 4+5 as foo") {
+//             if ([s next]) {
+// 	int totalCount = [s intForColumnIndex:0];
+// }
             let data = r.resultDict
             print("data \(data)")
 

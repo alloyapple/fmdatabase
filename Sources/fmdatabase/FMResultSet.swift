@@ -64,6 +64,10 @@ public class FMResultSet {
         return data
     }
 
+    public func next() -> Bool {
+        return false
+    }
+
     deinit {
         statement.reset()
 
