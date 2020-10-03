@@ -112,7 +112,7 @@ public class FMDatabase {
         }
 
         if self.isExecutingStatement {
-            //[self warnInUse];
+            self.warnInUse()
             return nil  
         }
 
