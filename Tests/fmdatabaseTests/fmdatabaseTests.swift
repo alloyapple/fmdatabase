@@ -41,17 +41,23 @@ final class fmdatabaseTests: XCTestCase {
                 let test = db.executeUpdate(sql: sql)
                 XCTAssertTrue(test)
             }
+    }
 
-            if let r = db.executeQuery(sql: "select 4+5 as foo") {
-                let data = r.resultDict
-                print("data \(data)")
+    func testselect() {
+        let db = FMDatabase()
+        XCTAssertTrue(db.open())
+        XCTAssertTrue(db.goodConnection)
+        if let r = db.executeQuery(sql: "select 4+5 as foo") {
+            let data = r.resultDict
+            print("data \(data)")
 
-            } else {
-                XCTAssertTrue(false)
-            }
+        } else {
+            XCTAssertTrue(false)
+        }
     }
 
     static var allTests = [
         ("testExample", testExample),
+         ("testselect", testselect),
     ]
 }

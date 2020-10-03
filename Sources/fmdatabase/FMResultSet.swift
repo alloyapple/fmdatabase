@@ -14,7 +14,6 @@ public class FMResultSet {
 
     var resultDict: [String: SqliteValue] {
         var result = [String: SqliteValue]()
-        
         for (k, v) in self.columnNames {
             result[k] = self.valueForColumnIndex(v)
         }

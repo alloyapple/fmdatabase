@@ -39,6 +39,20 @@ public class FMDatabase {
         }
     }
 
+    var goodConnection: Bool {
+        get {
+            if _db == nil {
+                return false
+            }
+
+            guard let _ = self.executeQuery(sql: "select name from sqlite_master where type='table'") else {
+                return false
+            }
+
+            return true
+        }
+    }
+
     public init(path: String = ":memory:") {
         self.path = path
     }
