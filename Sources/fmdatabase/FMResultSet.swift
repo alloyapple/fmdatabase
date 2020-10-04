@@ -71,7 +71,7 @@ public class FMResultSet {
         return data
     }
 
-    public func next() -> Bool {
+    public var next: Bool {
         var retry = false
         var numberOfRetries = 0
         var rc = SQLITE_ROW

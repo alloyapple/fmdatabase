@@ -45,13 +45,12 @@ final class fmdatabaseTests: XCTestCase {
         XCTAssertTrue(db.goodConnection)
         db.traceExecution = true
         if let r = db.executeQuery(sql: "select 4+5 as foo") {
-            if r.next() {
+            if r.next {
                 let data = r.intForColumn("foo")
                 XCTAssertEqual(data, 9)
             }
 
-        }
-        else {
+        } else {
             XCTAssertTrue(false)
         }
     }
