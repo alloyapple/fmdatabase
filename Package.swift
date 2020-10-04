@@ -9,7 +9,8 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "fmdatabase",
-            targets: ["fmdatabase"]),
+            targets: ["fmdatabase"]
+        )
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -21,12 +22,15 @@ let package = Package(
         .target(
             name: "CSqlite3",
             dependencies: [],
-            linkerSettings: [LinkerSetting.linkedLibrary("sqlite3")]),
+            linkerSettings: [LinkerSetting.linkedLibrary("sqlite3")]
+        ),
         .target(
             name: "fmdatabase",
-            dependencies: ["CSqlite3"]),
+            dependencies: ["CSqlite3"]
+        ),
         .testTarget(
             name: "fmdatabaseTests",
-            dependencies: ["fmdatabase"]),
+            dependencies: ["fmdatabase"]
+        ),
     ]
 )

@@ -1,5 +1,4 @@
 import XCTest
-
 import fmdatabaseTests
 
 var tests = [XCTestCaseEntry]()

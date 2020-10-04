@@ -1,7 +1,6 @@
 import CSqlite3
 import Glibc
 
-
 public class FMDatabase {
 
     var traceExecution: Bool = false
@@ -17,40 +16,33 @@ public class FMDatabase {
     var shouldCacheStatements: Bool = false
     var inTransaction: Bool = false
     var databaseExists: Bool {
-        get {
-            if self._db == nil {
-                print("The FMDatabase \(self.path) is not open.")
-                return false
-            }
-
-            return true
+        if self._db == nil {
+            print("The FMDatabase \(self.path) is not open.")
+            return false
         }
+
+        return true
     }
 
     var lastErrorCode: Int32 {
-        get {
-            return sqlite3_errcode(self._db)
-        }
+        return sqlite3_errcode(self._db)
     }
 
     var lastErrorMessage: String {
-        get {
-            return String(cString: sqlite3_errmsg(self._db))
-        }
+        return String(cString: sqlite3_errmsg(self._db))
     }
 
     var goodConnection: Bool {
-        get {
-            if _db == nil {
-                return false
-            }
-
-            guard let _ = self.executeQuery(sql: "select name from sqlite_master where type='table'") else {
-                return false
-            }
-
-            return true
+        if _db == nil {
+            return false
         }
+
+        guard let _ = self.executeQuery(sql: "select name from sqlite_master where type='table'")
+        else {
+            return false
+        }
+
+        return true
     }
 
     public init(path: String = ":memory:") {
@@ -63,8 +55,8 @@ public class FMDatabase {
     }
 
     public func open(flags: Int32) -> Bool {
-         let err = sqlite3_open_v2(self.path, &_db, flags, nil /* Name of VFS module to use */)
-         return err == SQLITE_OK
+        let err = sqlite3_open_v2(self.path, &_db, flags, nil /* Name of VFS module to use */)
+        return err == SQLITE_OK
     }
 
     public static func databaseWith(path: String) -> FMDatabase {
@@ -91,7 +83,7 @@ public class FMDatabase {
     public func bindObject(obj: SqliteValue?, idx: Int32, pStmt: OpaquePointer) {
         guard let obj = obj else {
             sqlite3_bind_null(pStmt, idx)
-            return 
+            return
         }
 
         obj.bind(idx: idx, pStmt: pStmt)
@@ -100,12 +92,16 @@ public class FMDatabase {
 
     //- (FMResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args {
 
-    public func executeQuery(sql: String, arrayArgs: [SqliteValue?] = [], dictionaryArgs: [String: SqliteValue?] = [:]) -> FMResultSet? {
+    public func executeQuery(
+        sql: String,
+        arrayArgs: [SqliteValue?] = [],
+        dictionaryArgs: [String: SqliteValue?] = [:]
+    ) -> FMResultSet? {
         var pStmt: OpaquePointer? = nil
         var rc: Int32 = 0
         var retry = false
         var numberOfRetries = 0
-        var statement :FMStatement? = nil
+        var statement: FMStatement? = nil
 
         if self.databaseExists == false {
             return nil
@@ -113,17 +109,17 @@ public class FMDatabase {
 
         if self.isExecutingStatement {
             self.warnInUse()
-            return nil  
+            return nil
         }
 
-        self.isExecutingStatement = true    
+        self.isExecutingStatement = true
 
         if self.traceExecution {
             print("executeQuery: \(sql)")
         }
 
         if self.shouldCacheStatements {
-            statement            = self.cachedStatements[sql]
+            statement = self.cachedStatements[sql]
             pStmt = statement?.statement
             statement?.reset()
         }
@@ -132,7 +128,7 @@ public class FMDatabase {
             repeat {
                 retry = false
                 rc = sqlite3_prepare_v2(_db, sql, -1, &pStmt, nil)
-                if (SQLITE_BUSY == rc || SQLITE_LOCKED == rc) {
+                if SQLITE_BUSY == rc || SQLITE_LOCKED == rc {
                     retry = true
                     usleep(20)
                     numberOfRetries = numberOfRetries + 1
@@ -142,7 +138,8 @@ public class FMDatabase {
                         self.isExecutingStatement = false
                         return nil
                     }
-                } else if (SQLITE_OK != rc) {
+                }
+                else if SQLITE_OK != rc {
                     if self.logsErrors {
                         print("DB Error: \(self.lastErrorCode) \(self.lastErrorMessage)")
                         print("DB Query: \(sql)")
@@ -152,7 +149,7 @@ public class FMDatabase {
                     self.isExecutingStatement = false
                     return nil
                 }
-            } while retry;
+            } while retry
         }
 
         let queryCount = sqlite3_bind_parameter_count(pStmt)
@@ -164,11 +161,13 @@ public class FMDatabase {
                 if namedIdx > 0 {
                     bindObject(obj: v, idx: namedIdx, pStmt: pStmt!)
                     idx = idx + 1
-                } else {
+                }
+                else {
                     print("Could not find index for \(k)")
                 }
             }
-        } else {
+        }
+        else {
             while idx < queryCount {
                 let obj = arrayArgs[Int(idx)]
                 idx = idx + 1
@@ -177,14 +176,14 @@ public class FMDatabase {
         }
 
         if idx != queryCount {
-            print("Error: the bind count is not correct for the # of variables (executeQuery)");
+            print("Error: the bind count is not correct for the # of variables (executeQuery)")
             sqlite3_finalize(pStmt)
             self.isExecutingStatement = false
             return nil
         }
 
         if statement == nil {
-            statement = FMStatement()   
+            statement = FMStatement()
             statement?.statement = pStmt
 
             if self.shouldCacheStatements {
@@ -197,12 +196,16 @@ public class FMDatabase {
         self.openResultSets.append(rs)
         statement!.useCount = statement!.useCount + 1
 
-        self.isExecutingStatement = false   
+        self.isExecutingStatement = false
 
         return rs
     }
 
-    public func executeUpdate(sql: String, arrayArgs: [SqliteValue?] = [], dictionaryArgs: [String: SqliteValue?] = [:]) -> Bool {
+    public func executeUpdate(
+        sql: String,
+        arrayArgs: [SqliteValue?] = [],
+        dictionaryArgs: [String: SqliteValue?] = [:]
+    ) -> Bool {
         if self.databaseExists == false {
             return false
         }
@@ -218,10 +221,10 @@ public class FMDatabase {
             print("executeQuery: \(sql)")
         }
 
-        var statement :FMStatement? = nil
+        var statement: FMStatement? = nil
         var pStmt: OpaquePointer? = nil
         var numberOfRetries = 0
-        var retry  = false
+        var retry = false
         var rc: Int32 = 0
 
         if self.shouldCacheStatements {
@@ -236,7 +239,7 @@ public class FMDatabase {
                 rc = sqlite3_prepare_v2(_db, sql, -1, &pStmt, nil)
                 if SQLITE_BUSY == rc || SQLITE_LOCKED == rc {
                     retry = true
-                    usleep(20);
+                    usleep(20)
                     numberOfRetries += 1
                     if self.busyRetryTimeout > 0 && numberOfRetries > self.busyRetryTimeout {
                         print("\(#function):\(#line) Database busy (\(self.path))")
@@ -245,7 +248,8 @@ public class FMDatabase {
                         self.isExecutingStatement = false
                         return false
                     }
-                } else if SQLITE_OK != rc {
+                }
+                else if SQLITE_OK != rc {
 
                     if self.logsErrors {
                         print("DB Error: \(self.lastErrorCode) \(self.lastErrorMessage)")
@@ -260,7 +264,7 @@ public class FMDatabase {
             } while retry
         }
 
-        var idx: Int32 = 0;
+        var idx: Int32 = 0
         let queryCount = sqlite3_bind_parameter_count(pStmt)
 
         if dictionaryArgs.count > 0 {
@@ -270,11 +274,13 @@ public class FMDatabase {
                 if namedIdx > 0 {
                     self.bindObject(obj: v, idx: namedIdx, pStmt: pStmt!)
                     idx = idx + 1
-                } else {
+                }
+                else {
                     print("Could not find index for \(k)")
                 }
             }
-        } else {
+        }
+        else {
             while idx < queryCount {
                 let obj = arrayArgs[Int(idx)]
                 idx = idx + 1
@@ -283,7 +289,7 @@ public class FMDatabase {
         }
 
         if idx != queryCount {
-            print("Error: the bind count is not correct for the # of variables (executeQuery)");
+            print("Error: the bind count is not correct for the # of variables (executeQuery)")
             sqlite3_finalize(pStmt)
             self.isExecutingStatement = false
             return false
@@ -294,32 +300,36 @@ public class FMDatabase {
         repeat {
             rc = sqlite3_step(pStmt)
             retry = false
-            if (SQLITE_BUSY == rc || SQLITE_LOCKED == rc) {
+            if SQLITE_BUSY == rc || SQLITE_LOCKED == rc {
                 retry = true
-                if (SQLITE_LOCKED == rc) {
-                    rc = sqlite3_reset(pStmt);
-                    if (rc != SQLITE_LOCKED) {
-                        print("Unexpected result from sqlite3_reset (\(rc)) eu");
+                if SQLITE_LOCKED == rc {
+                    rc = sqlite3_reset(pStmt)
+                    if rc != SQLITE_LOCKED {
+                        print("Unexpected result from sqlite3_reset (\(rc)) eu")
                     }
                 }
 
                 usleep(20)
                 numberOfRetries = numberOfRetries + 1
                 if self.busyRetryTimeout > 0 && numberOfRetries > self.busyRetryTimeout {
-                    print("\(#function):\(#line) Database busy (\(self.path ))");
+                    print("\(#function):\(#line) Database busy (\(self.path ))")
                     print("Database busy")
                     retry = false
                 }
 
-            } else if SQLITE_DONE == rc {
+            }
+            else if SQLITE_DONE == rc {
 
-            } else if SQLITE_ERROR == rc {
+            }
+            else if SQLITE_ERROR == rc {
                 print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) SQLITE_ERROR")
                 print("DB Query: \(sql)")
-            } else if SQLITE_MISUSE == rc {
+            }
+            else if SQLITE_MISUSE == rc {
                 print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) SQLITE_MISUSE")
                 print("DB Query: \(sql)")
-            } else {
+            }
+            else {
                 print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) eu")
                 print("DB Query: \(sql)")
             }
@@ -334,22 +344,22 @@ public class FMDatabase {
             self.setCachedStatement(statement: cachedStmt!, query: sql)
         }
 
-        
-
         if cachedStmt == nil {
             closeErrorCode = sqlite3_finalize(pStmt)
-        } else {
+        }
+        else {
             cachedStmt!.useCount += cachedStmt!.useCount + 1
-            closeErrorCode = sqlite3_reset(pStmt);
+            closeErrorCode = sqlite3_reset(pStmt)
         }
 
-        if (closeErrorCode != SQLITE_OK) {
-            print("Unknown error finalizing or resetting statement (\(closeErrorCode): \(self.lastErrorMessage))")
-            print("DB Query: \(sql)");
+        if closeErrorCode != SQLITE_OK {
+            print(
+                "Unknown error finalizing or resetting statement (\(closeErrorCode): \(self.lastErrorMessage))"
+            )
+            print("DB Query: \(sql)")
         }
-    
+
         self.isExecutingStatement = false
-
 
         return (rc == SQLITE_DONE || rc == SQLITE_OK)
     }
@@ -399,8 +409,7 @@ public class FMDatabase {
     }
 }
 
-
-public class FMStatement{
+public class FMStatement {
     public var statement: OpaquePointer?
     public var query: String = ""
     public var useCount: Int32 = 0
@@ -420,4 +429,3 @@ public class FMStatement{
     }
 
 }
-

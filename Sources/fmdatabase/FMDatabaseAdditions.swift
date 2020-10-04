@@ -3,7 +3,6 @@ import Foundation
 
 extension FMDatabase {
 
-    
 }
 
 public protocol SqliteValue {
@@ -11,12 +10,12 @@ public protocol SqliteValue {
 }
 
 extension Data {
-    var bytes : [UInt8]{
+    var bytes: [UInt8] {
         return [UInt8](self)
     }
 }
 
-extension Date: SqliteValue { 
+extension Date: SqliteValue {
     public func bind(idx: Int32, pStmt: OpaquePointer) {
         sqlite3_bind_double(pStmt, idx, self.timeIntervalSince1970)
     }
@@ -29,7 +28,7 @@ extension Data: SqliteValue {
     }
 }
 
-extension String : SqliteValue {
+extension String: SqliteValue {
     public func bind(idx: Int32, pStmt: OpaquePointer) {
         sqlite3_bind_text(pStmt, idx, self, -1, SQLITE_STATIC)
     }
