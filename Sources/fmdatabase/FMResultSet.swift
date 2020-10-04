@@ -138,6 +138,14 @@ public class FMResultSet {
         return sqlite3_column_int(statement.statement, columnIdx)
     }
 
+    func int64ForColumn(_ columnName: String) -> Int64 {
+        return self.int64ForColumnIndex(self.columnIndexForName(columnName))
+    }
+
+    func int64ForColumnIndex(_ columnIdx: Int32) -> Int64 {
+        return sqlite3_column_int64(statement.statement, columnIdx)
+    }
+
     deinit {
         statement.reset()
 
