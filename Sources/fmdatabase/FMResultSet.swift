@@ -65,7 +65,44 @@ public class FMResultSet {
     }
 
     public func next() -> Bool {
-        return false
+        var retry = false
+        var numberOfRetries = 0
+        var rc = SQLITE_ROW
+        repeat {
+            retry = false
+            rc = sqlite3_step(statement.statement)
+            if rc == SQLITE_BUSY || rc == SQLITE_LOCKED {
+                retry = true
+
+                if rc == SQLITE_LOCKED {
+                    rc = sqlite3_reset(statement.statement)
+                    if rc != SQLITE_LOCKED {
+                        print("Unexpected result from sqlite3_reset \(rc) rs")
+                    }
+                }
+
+                usleep(20)
+                numberOfRetries = numberOfRetries + 1
+
+                if self.parentDB!.busyRetryTimeout > 0 && numberOfRetries > self.parentDB!.busyRetryTimeout {
+                    print("\(#function):\(#line)Database busy \(parentDB?.path ?? "")")
+                    print("Database busy")
+                    break
+                }
+
+            } else if SQLITE_DONE == rc || SQLITE_ROW == rc {
+
+            } else if SQLITE_ERROR == rc {
+                print("Error calling sqlite3_step (\(rc): \(parentDB?.lastErrorMessage ?? "")) rs")
+                break
+            } else if SQLITE_MISUSE == rc  {
+                print("Error calling sqlite3_step (\(rc): \(parentDB?.lastErrorMessage ?? "")) rs")
+            } else {
+                print("Unknown Error calling sqlite3_step (\(rc): \(parentDB?.lastErrorMessage ?? "")) rs")
+            }
+        } while retry   
+
+        return rc == SQLITE_ROW
     }
 
     deinit {
