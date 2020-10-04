@@ -105,6 +105,24 @@ public class FMResultSet {
         return rc == SQLITE_ROW
     }
 
+    func columnIndexForName(_ columnName: String) -> Int32 {
+
+        let _columnName = columnName.lowercased()
+        guard let n = self.columnNames[_columnName] else {
+            return -1
+        } 
+        return n
+
+    }
+
+    func intForColumn(_ columnName: String) -> Int32 {
+        return self.intForColumnIndex(self.columnIndexForName(columnName))
+    }
+
+    func intForColumnIndex(_ columnIdx: Int32) -> Int32 {
+        return sqlite3_column_int(statement.statement, columnIdx)
+    }
+
     deinit {
         statement.reset()
 
