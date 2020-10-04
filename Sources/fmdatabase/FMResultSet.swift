@@ -146,6 +146,14 @@ public class FMResultSet {
         return sqlite3_column_int64(statement.statement, columnIdx)
     }
 
+    func doubleForColumn(_ columnName: String) -> Double {
+        return self.doubleForColumnIndex(self.columnIndexForName(columnName))
+    }
+
+    func doubleForColumnIndex(_ columnIdx: Int32) -> Double {
+        return sqlite3_column_double(statement.statement, columnIdx)
+    }
+
     deinit {
         statement.reset()
 
