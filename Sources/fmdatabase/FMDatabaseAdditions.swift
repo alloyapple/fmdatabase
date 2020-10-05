@@ -69,3 +69,8 @@ extension Double: SqliteValue {
         sqlite3_bind_double(pStmt, idx, Double(self))
     }
 }
+
+
+extension FMDatabase {
+
+}
