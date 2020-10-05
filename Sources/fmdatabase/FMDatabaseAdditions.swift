@@ -85,4 +85,18 @@ extension FMDatabase {
         return rs.next
     }
 
+    var schema: FMResultSet? {
+         //result colums: type[STRING], name[STRING],tbl_name[STRING],rootpage[INTEGER],sql[STRING]
+        return self.executeQuery(
+            sql:
+                "SELECT type, name, tbl_name, rootpage, sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type != 'meta' AND name NOT LIKE 'sqlite_%' ORDER BY tbl_name, type DESC, name"
+        )
+    }
+
+    func  tableSchema(tableName: String) -> FMResultSet? {
+        return self.executeQuery(
+            sql:
+                "PRAGMA table_info('\(tableName)')")
+    }
+
 }
