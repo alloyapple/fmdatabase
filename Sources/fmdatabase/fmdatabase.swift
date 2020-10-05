@@ -197,6 +197,12 @@ public class FMDatabase {
         return rs
     }
 
+    public func executeQuery(
+        _ sql: String, _ args: SqliteValue...
+    ) -> FMResultSet? {
+        return self.executeQuery(sql: sql, arrayArgs: args)
+    }
+
     public func executeUpdate(
         sql: String,
         arrayArgs: [SqliteValue?] = [],

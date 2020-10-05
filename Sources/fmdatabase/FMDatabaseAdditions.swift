@@ -76,8 +76,8 @@ extension FMDatabase {
         let _tableName = tableName.lowercased()
         guard
             let rs = self.executeQuery(
-                sql:
-                    "select [sql] from sqlite_master where [type] = 'table' and lower(name) = \(_tableName)"
+                "select [sql] from sqlite_master where [type] = 'table' and lower(name) = ?",
+                _tableName
             )
         else {
             return false
