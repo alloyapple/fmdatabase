@@ -53,6 +53,12 @@ final class fmdatabaseTests: XCTestCase {
         } else {
             XCTAssertTrue(false)
         }
+
+        XCTAssertFalse(db.tableExists(tableName: "Person"))
+        XCTAssertTrue(db.executeUpdate(sql: "CREATE TABLE Person(id integer primary key)"))
+        XCTAssertTrue(db.tableExists(tableName: "Person"))
+
+        
     }
 
     static var allTests = [
