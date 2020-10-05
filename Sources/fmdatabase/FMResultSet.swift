@@ -156,7 +156,7 @@ public class FMResultSet {
 
     deinit {
         statement.reset()
-
+    
     }
 
     public static func resultSetWith(statement: FMStatement, aDB: FMDatabase) -> FMResultSet {

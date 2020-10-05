@@ -12,7 +12,7 @@ public class FMDatabase {
     var cachedStatements: [String: FMStatement] = [:]
     let path: String
     var _db: OpaquePointer? = nil
-    var openResultSets: [FMResultSet] = []
+
     var shouldCacheStatements: Bool = false
     var inTransaction: Bool = false
     var databaseExists: Bool {
@@ -138,8 +138,7 @@ public class FMDatabase {
                         self.isExecutingStatement = false
                         return nil
                     }
-                }
-                else if SQLITE_OK != rc {
+                } else if SQLITE_OK != rc {
                     if self.logsErrors {
                         print("DB Error: \(self.lastErrorCode) \(self.lastErrorMessage)")
                         print("DB Query: \(sql)")
@@ -161,13 +160,11 @@ public class FMDatabase {
                 if namedIdx > 0 {
                     bindObject(obj: v, idx: namedIdx, pStmt: pStmt!)
                     idx = idx + 1
-                }
-                else {
+                } else {
                     print("Could not find index for \(k)")
                 }
             }
-        }
-        else {
+        } else {
             while idx < queryCount {
                 let obj = arrayArgs[Int(idx)]
                 idx = idx + 1
@@ -193,7 +190,6 @@ public class FMDatabase {
 
         let rs = FMResultSet.resultSetWith(statement: statement!, aDB: self)
         rs.query = sql
-        self.openResultSets.append(rs)
         statement!.useCount = statement!.useCount + 1
 
         self.isExecutingStatement = false
@@ -248,8 +244,7 @@ public class FMDatabase {
                         self.isExecutingStatement = false
                         return false
                     }
-                }
-                else if SQLITE_OK != rc {
+                } else if SQLITE_OK != rc {
 
                     if self.logsErrors {
                         print("DB Error: \(self.lastErrorCode) \(self.lastErrorMessage)")
@@ -274,13 +269,11 @@ public class FMDatabase {
                 if namedIdx > 0 {
                     self.bindObject(obj: v, idx: namedIdx, pStmt: pStmt!)
                     idx = idx + 1
-                }
-                else {
+                } else {
                     print("Could not find index for \(k)")
                 }
             }
-        }
-        else {
+        } else {
             while idx < queryCount {
                 let obj = arrayArgs[Int(idx)]
                 idx = idx + 1
@@ -317,19 +310,15 @@ public class FMDatabase {
                     retry = false
                 }
 
-            }
-            else if SQLITE_DONE == rc {
+            } else if SQLITE_DONE == rc {
 
-            }
-            else if SQLITE_ERROR == rc {
+            } else if SQLITE_ERROR == rc {
                 print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) SQLITE_ERROR")
                 print("DB Query: \(sql)")
-            }
-            else if SQLITE_MISUSE == rc {
+            } else if SQLITE_MISUSE == rc {
                 print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) SQLITE_MISUSE")
                 print("DB Query: \(sql)")
-            }
-            else {
+            } else {
                 print("Error calling sqlite3_step (\(rc): \(self.lastErrorMessage)) eu")
                 print("DB Query: \(sql)")
             }
@@ -346,8 +335,7 @@ public class FMDatabase {
 
         if cachedStmt == nil {
             closeErrorCode = sqlite3_finalize(pStmt)
-        }
-        else {
+        } else {
             cachedStmt!.useCount += cachedStmt!.useCount + 1
             closeErrorCode = sqlite3_reset(pStmt)
         }
