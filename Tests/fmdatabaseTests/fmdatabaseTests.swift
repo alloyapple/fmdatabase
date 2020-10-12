@@ -61,8 +61,20 @@ final class fmdatabaseTests: XCTestCase {
         
     }
 
+    func testPassword() {
+        let db = FMDatabase(path: "Resource/_password.db")
+        XCTAssertTrue(db.open())
+
+        XCTAssertTrue(db.executeUpdate(sql: "delete from \"password\";"))
+        for i in 1...10000 {
+            XCTAssertTrue(db.executeUpdate(sql: "INSERT INTO \"password\" VALUES(\(i),'foo');"))
+        }
+        
+    }
+
     static var allTests = [
         ("testExample", testExample),
+        ("testPassword", testPassword),
         ("testselect", testselect),
     ]
 }

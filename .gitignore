@@ -4,3 +4,5 @@
 /*.xcodeproj
 xcuserdata/
 .swift-format
+
+Resource/_password.db
