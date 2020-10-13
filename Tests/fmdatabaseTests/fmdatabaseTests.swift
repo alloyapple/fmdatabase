@@ -58,7 +58,6 @@ final class fmdatabaseTests: XCTestCase {
         XCTAssertTrue(db.executeUpdate(sql: "CREATE TABLE Person(id integer primary key)"))
         XCTAssertTrue(db.tableExists(tableName: "Person"))
 
-        
     }
 
     func testPassword() {
@@ -69,12 +68,28 @@ final class fmdatabaseTests: XCTestCase {
         for i in 1...10000 {
             XCTAssertTrue(db.executeUpdate(sql: "INSERT INTO \"password\" VALUES(\(i),'foo');"))
         }
-        
+
+    }
+
+    func testPasswordCommit() {
+        let db = FMDatabase(path: "Resource/_password.db")
+        XCTAssertTrue(db.open())
+
+        XCTAssertTrue(db.executeUpdate(sql: "delete from \"password\";"))
+        XCTAssertTrue(db.beginTransaction())
+        for i in 1...10000 {
+            XCTAssertTrue(db.executeUpdate(sql: "INSERT INTO \"password\" VALUES(\(i),'foo');"))
+        }
+
+        XCTAssertTrue(db.commit())
+
     }
 
     static var allTests = [
         ("testExample", testExample),
         ("testPassword", testPassword),
+        ("testPasswordCommit", testPasswordCommit),
+        
         ("testselect", testselect),
     ]
 }
