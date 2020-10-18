@@ -65,7 +65,7 @@ final class fmdatabaseTests: XCTestCase {
         XCTAssertTrue(db.open())
 
         XCTAssertTrue(db.executeUpdate(sql: "delete from \"password\";"))
-        for i in 1...10000 {
+        for i in 1...1000 {
             XCTAssertTrue(db.executeUpdate(sql: "INSERT INTO \"password\" VALUES(\(i),'foo');"))
         }
 
