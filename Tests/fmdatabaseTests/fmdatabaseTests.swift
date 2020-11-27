@@ -89,7 +89,7 @@ final class fmdatabaseTests: XCTestCase {
         ("testExample", testExample),
         ("testPassword", testPassword),
         ("testPasswordCommit", testPasswordCommit),
-        
+
         ("testselect", testselect),
     ]
 }
